@@ -1,0 +1,55 @@
+services:
+  backend:
+    build: ./back-end/
+    ports:
+      - 8080:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - ./back-end/.env
+
+  front-end:
+    build: ./front-end
+    ports:
+      - 5173:5173
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./back-end/migrations:/migrations
+    env_file:
+      - ./back-end/.env
+    entrypoint: ["sh", "-c", "migrate -path=/migrations -database=$$DATABASE_URL up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - 5432:5432
+    env_file:
+      - ./back-end/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    env_file:
+      - ./back-end/.env
+    command: sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+
+volumes:
+  pgdata:

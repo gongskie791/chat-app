@@ -1,0 +1,17 @@
+# Environment variables - never commit these
+.env
+.env.*
+!.env.example
+
+# Go
+back-end/vendor/
+back-end/*.exe
+back-end/tmp/
+
+# Node
+front-end/node_modules/
+front-end/dist/
+front-end/.next/
+
+# Docker
+*.log
