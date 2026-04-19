@@ -19,6 +19,10 @@ func NewRouter(db *sqlx.DB, rdb *redis.Client, jwtManager *util.JWTManager) http
 	h := hub.NewHub()
 	go h.Run()
 
+	router.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	loadAuthRoutes(router, db, rdb, jwtManager)
 	loadRoomRoutes(router, db, rdb, jwtManager, h)
 

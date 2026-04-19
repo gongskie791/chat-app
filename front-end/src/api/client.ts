@@ -31,10 +31,13 @@ async function request<T>(
     headers,
   });
 
-  const body = await res.json();
+  const contentType = res.headers.get("content-type");
+  const body = contentType?.includes("application/json")
+    ? await res.json()
+    : null;
 
   if (!res.ok) {
-    throw new Error(body.error ?? "Request failed");
+    throw new Error(body?.error ?? "Request failed");
   }
 
   return body;
