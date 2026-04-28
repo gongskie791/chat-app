@@ -9,6 +9,8 @@ export function register(username: string, email: string, password: string) {
   });
 }
 
+// hello gongskie 
+
 export function login(email: string, password: string) {
   return api.post<ApiResponse<AuthData>>("/auth/login", { email, password });
 }
