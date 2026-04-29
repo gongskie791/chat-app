@@ -1,0 +1,26 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test-backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: back-end/go.mod
+          cache-dependency-path: back-end/go.sum
+
+      - name: Run tests
+        working-directory: back-end
+        run: make test
