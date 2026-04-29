@@ -22,5 +22,5 @@ jobs:
           cache-dependency-path: back-end/go.sum
 
       - name: Run tests
-        working-directory: backend
+        working-directory: back-end
         run: make test
