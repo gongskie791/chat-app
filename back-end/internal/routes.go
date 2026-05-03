@@ -7,9 +7,12 @@ import (
 	"chat-app/back-end/internal/repository"
 	"chat-app/back-end/internal/service"
 	"chat-app/back-end/internal/util"
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -20,8 +23,35 @@ func NewRouter(db *sqlx.DB, rdb *redis.Client, jwtManager *util.JWTManager) http
 	go h.Run()
 
 	router.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+
+		type healthStatus struct {
+			Status   string `json:"status"`
+			Postgres string `json:"postgres"`
+			Redis    string `json:"redis"`
+		}
+
+		result := healthStatus{Status: "ok", Postgres: "ok", Redis: "ok"}
+
+		if err := db.PingContext(ctx); err != nil {
+			result.Status = "unhealthy"
+			result.Postgres = err.Error()
+		}
+
+		if err := rdb.Ping(ctx).Err(); err != nil {
+			result.Status = "unhealthy"
+			result.Redis = err.Error()
+		}
+
+		statusCode := http.StatusOK
+		if result.Status == "unhealthy" {
+			statusCode = http.StatusServiceUnavailable
+		}
+
+		util.JSON(w, statusCode, result)
 	})
+	router.Handle("GET /metrics", promhttp.Handler())
 
 	loadAuthRoutes(router, db, rdb, jwtManager)
 	loadRoomRoutes(router, db, rdb, jwtManager, h)

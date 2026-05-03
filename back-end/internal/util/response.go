@@ -12,8 +12,8 @@ type Response[T any] struct {
 	Error   string `json:"error,omitempty"`
 }
 type ErrorResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error,omitempty"`
+	Success bool `json:"success"`
+	Error   any  `json:"error,omitempty"`
 }
 type ValidationErrorResponse struct {
 	Success bool              `json:"success"`
@@ -35,7 +35,7 @@ func Success[T any](w http.ResponseWriter, status int, message string, data T) {
 	})
 }
 
-func Error(w http.ResponseWriter, status int, message string) {
+func Error(w http.ResponseWriter, status int, message any) {
 	JSON(w, status, ErrorResponse{
 		Success: false,
 		Error:   message,
