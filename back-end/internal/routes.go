@@ -22,7 +22,7 @@ func NewRouter(db *sqlx.DB, rdb *redis.Client, jwtManager *util.JWTManager) http
 	h := hub.NewHub()
 	go h.Run()
 
-	router.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 
@@ -51,7 +51,7 @@ func NewRouter(db *sqlx.DB, rdb *redis.Client, jwtManager *util.JWTManager) http
 
 		util.JSON(w, statusCode, result)
 	})
-	router.Handle("GET /metrics", promhttp.Handler())
+	router.Handle("GET /api/metrics", promhttp.Handler())
 
 	loadAuthRoutes(router, db, rdb, jwtManager)
 	loadRoomRoutes(router, db, rdb, jwtManager, h)
